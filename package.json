@@ -7,5 +7,22 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "nodemon": "^3.1.10"
-  }
+  },
+  "name": "rent-and-return",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seifmedhat2004/Rent-and-Return.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/seifmedhat2004/Rent-and-Return/issues"
+  },
+  "homepage": "https://github.com/seifmedhat2004/Rent-and-Return#readme",
+  "description": ""
 }
