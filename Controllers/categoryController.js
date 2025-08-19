@@ -9,8 +9,8 @@ exports.getCategories = async (req, res) => {
       results: categories.length,
       data: categories,
     });
-  } catch (err) {
-    res.status(500).json({ status: "error", message: err.message });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: error.message });  
   }
 };
 
@@ -40,8 +40,8 @@ exports.getCategory = async (req, res) => {
       status: "success",
       data: category,
     });
-  } catch (err) {
-    res.status(400).json({ status: "error", message: err.message });
+  } catch (error) {
+    res.status(400).json({ status: "error", message: error.message });
   }
 };
 
@@ -79,3 +79,4 @@ exports.deleteCategory = async (req, res) => {
     res.status(400).json({ status: "error", message: error.message });
   }
 };
+

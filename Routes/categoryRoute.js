@@ -6,14 +6,19 @@ const {
   updateCategory,
   deleteCategory,
 } = require("../Controllers/categoryController");
+const { protect, authorize } = require("../middleware/authMiddleware");
 
-router = express.Router();
+const router = express.Router();
 
-router.route("/").get(getCategories).post(createCategory);
+// Public routes (no authentication required)
+router.route("/").get(getCategories);
+
+// Protected routes (require authentication and admin role)
+router.route("/").post(protect, authorize("admin"), createCategory);
 router
   .route("/:id")
-  .get(getCategory)
-  .put(updateCategory)
-  .delete(deleteCategory);
+  .get(getCategory) // Public access to view specific category
+  .put(protect, authorize("admin"), updateCategory)
+  .delete(protect, authorize("admin"), deleteCategory);
 
 module.exports = router;

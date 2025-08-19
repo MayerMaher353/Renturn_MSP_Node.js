@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true,
-    Math: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/],
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/],
   },
   password: {
     type: String,
@@ -31,22 +31,31 @@ const userSchema = new mongoose.Schema({
     select: false,
     minlength: 6,
   },
-  nationalID:{
-    type:String,
-    maxlegth:14,
-    required:true,
-    select:false
+  nationalID: {
+    type: String,
+    minlength: 14,
+    maxlength: 60, 
+    required: true,
+    select: false,
   },
-  date:{
-    type:Date,
-    default:Date.now
+  resetCode: {
+    type: String,
+    select: false,
+  },
+  resetCodeExpires: {
+    type: Date,
+    select: false,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
   },
   role: {
-  type: String,
-  enum: ['user', 'admin'],
-  default: 'user',
-}
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
 });
 
-const users = mongoose.model("user",userSchema)
-module.exports=users;
+const users = mongoose.model("user", userSchema);
+module.exports = users;
