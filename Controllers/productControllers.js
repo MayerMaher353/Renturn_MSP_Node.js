@@ -21,27 +21,21 @@ exports.getSingleProduct = asynchandler(async (req, res) => {
   res.status(200).json(foundproduct);
 });
 
-
-
 //Post Product or add product
 exports.postProduct = asynchandler(async (req, res) => {
-
-
   const { error } = validationPostProduct(req.body);
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
-  const { product_name, product_description, quantity, price, categoryId  } =
+  const { product_name, product_description, quantity, price, categoryId } =
     req.body;
 
-
-  const exists = await Product.findOne({ product_name, CategoryID });
+  const exists = await Product.findOne({ product_name, categoryId });
   if (exists) {
     return res
       .status(400)
       .json({ error: "Product already exists in this category" });
   }
-
 
   const newProduct = new Product({
     product_name,
@@ -52,8 +46,7 @@ exports.postProduct = asynchandler(async (req, res) => {
   });
   const saveProduct = await newProduct.save();
 
-
-  res.status(201).json({status:"success",data:saveProduct});
+  res.status(201).json({ status: "success", data: saveProduct });
 });
 
 //Update specific product
@@ -67,19 +60,15 @@ exports.UpdateProduct = asynchandler(async (req, res) => {
     }
   );
 
-
   if (!updateProduct) {
-    return res.status(400).json({ error: "product not found" });
+    return res.status(404).json({ error: "product not found" });
   }
-
 
   res.status(202).json({
     status: "success",
     data: updateProduct,
   });
 });
-
-
 
 //Delete sprcific product
 exports.DeleteProduct = asynchandler(async (req, res) => {
@@ -90,7 +79,6 @@ exports.DeleteProduct = asynchandler(async (req, res) => {
       .status(404)
       .json({ status: "fail", message: "product not found" });
   }
-  
+
   res.status(200).json({ status: "Success", data: null });
 });
-
