@@ -10,7 +10,7 @@ const {
   forgotPassword,
   resetPassword,
 } = require("../Controllers/authController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect } = require("../middlewares/authMiddleware");
 
 // Public routes (no protection required)
 router.post("/register", registerUser);

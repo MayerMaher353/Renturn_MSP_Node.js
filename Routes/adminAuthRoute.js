@@ -5,7 +5,7 @@ const {
   getUserById,
   deleteUser,
 } = require("../Controllers/authController");
-const { protect, authorize } = require("../middleware/authMiddleware");
+const { protect, authorize } = require("../middlewares/authMiddleware");
 
 // All admin routes require authentication and admin role
 router.use(protect);
