@@ -21,8 +21,15 @@ const generateResetCode = () => {
 // @route   POST /api/v1/auth/register
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { firstname, lastname, email, password, confirmPassword, nationalID } =
-    req.body;
+  const {
+    firstname,
+    lastname,
+    email,
+    password,
+    confirmPassword,
+    nationalID,
+    adminSecret,
+  } = req.body;
 
   // Check if user exists by email
   const userExists = await User.findOne({ email });
@@ -50,6 +57,24 @@ const registerUser = asyncHandler(async (req, res) => {
   // Hash national ID
   const hashedNationalID = await bcrypt.hash(nationalID, salt);
 
+  // Determine user role based on admin secret
+  let userRole = "user"; // Default role
+
+  // Check if admin secret is provided and valid
+  if (adminSecret) {
+    if (!process.env.ADMIN_SECRET) {
+      res.status(500);
+      throw new Error("Admin secret not configured on server");
+    }
+
+    if (adminSecret === process.env.ADMIN_SECRET) {
+      userRole = "admin";
+    } else {
+      res.status(403);
+      throw new Error("Invalid admin secret");
+    }
+  }
+
   // Create user
   const user = await User.create({
     firstname,
@@ -58,6 +83,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password: hashedPassword,
     confirmPassword: hashedPassword,
     nationalID: hashedNationalID,
+    role: userRole,
   });
 
   if (!user) {
