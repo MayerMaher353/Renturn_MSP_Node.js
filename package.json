@@ -24,7 +24,7 @@
   },
   "author": "",
   "engines": {
-    "node": "23.9.0"
+    "node": "22.x"
   },
   "license": "ISC",
   "bugs": {
