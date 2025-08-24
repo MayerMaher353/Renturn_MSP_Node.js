@@ -14,15 +14,18 @@
   },
   "name": "rent-and-return",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/seifmedhat2004/Rent-and-Return.git"
   },
   "author": "",
+  "engines": {
+    "node": "23.9.0"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/seifmedhat2004/Rent-and-Return/issues"
