@@ -154,7 +154,7 @@ exports.removeFromCart = asynchandler(async (req, res) => {
 });
 
 exports.getCartItemCount = asynchandler(async (req, res) => {
-  const cart = await Cart.findOne({ user: req.use.id });
+  const cart = await Cart.findOne({ user: req.user.id });
   if (!cart) {
     return res.status(200).json({ status: "success", count: 0 });
   }

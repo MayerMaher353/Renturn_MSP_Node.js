@@ -9,7 +9,7 @@ const {
 const { protect, authorize } = require("../middlewares/authMiddleware");
 
 const route = express.Router();
-
+// https://renturn.vercel.app/api/v1/products
 route.get("/", getAllProducts);
 route.get("/:id", getSingleProduct);
 route.post("/", protect, authorize("admin"), postProduct);
