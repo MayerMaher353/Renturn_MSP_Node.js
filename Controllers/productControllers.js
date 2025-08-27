@@ -1,6 +1,7 @@
 const Product = require("../Models/productModel");
 const validationPostProduct = require("../validation/postProductValidation");
 const asynchandler = require("express-async-handler");
+const { cloudinary } = require("../config/cloudinary");
 
 // Get all products controller
 exports.getAllProducts = asynchandler(async (req, res) => {
@@ -27,6 +28,7 @@ exports.postProduct = asynchandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ error: error.details[0].message });
   }
+
   const { product_name, product_description, quantity, price, categoryId } =
     req.body;
 
@@ -37,16 +39,37 @@ exports.postProduct = asynchandler(async (req, res) => {
       .json({ error: "Product already exists in this category" });
   }
 
+  // Handle image uploads
+  let mainImage = null;
+  let images = [];
+
+  if (req.file) {
+    // Single image upload
+    mainImage = req.file.path;
+  } else if (req.files && req.files.length > 0) {
+    // Multiple images upload
+    images = req.files.map((file) => file.path);
+    if (images.length > 0) {
+      mainImage = images[0]; // First image as main image
+    }
+  }
+
   const newProduct = new Product({
     product_name,
     product_description,
     quantity,
     price,
     categoryId,
+    mainImage,
+    images,
   });
   const saveProduct = await newProduct.save();
 
-  res.status(201).json({ status: "success", data: saveProduct });
+  res.status(201).json({
+    status: "success",
+    data: saveProduct,
+    message: "Product created successfully with images",
+  });
 });
 
 //Update specific product
