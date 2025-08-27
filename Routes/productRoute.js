@@ -6,6 +6,7 @@ const {
   DeleteProduct,
   postProduct,
 } = require("../Controllers/productControllers");
+
 const { protect, authorize } = require("../middlewares/authMiddleware");
 const {
   uploadSingleImage,

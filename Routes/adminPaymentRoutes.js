@@ -10,8 +10,8 @@ route.use(authorize("admin"));
 //Admin Routes
 route.post("/addGate",addGateWay)
 route.get("/gatways",getGatWay)
-route.put("/updateGatWay",updateGateWay)
-route.delete("/deleteGateWay",deleteGateWay)
+route.put("/updateGatWay/:id",updateGateWay)
+route.delete("/deleteGateWay/:id",deleteGateWay)
 
 module.exports=route;
 
