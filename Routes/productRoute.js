@@ -13,7 +13,7 @@ const {
 } = require("../middlewares/uploadMiddleware");
 
 const route = express.Router();
-
+// https://renturn.vercel.app/api/v1/products
 route.get("/", getAllProducts);
 route.get("/:id", getSingleProduct);
 

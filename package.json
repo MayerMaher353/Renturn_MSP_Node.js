@@ -2,26 +2,30 @@
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
     "bcryptjs": "^3.0.2",
+    "crypto-js": "^4.2.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "joi": "^18.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.10.1",
     "nodemon": "^3.1.10"
   },
   "name": "rent-and-return",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/seifmedhat2004/Rent-and-Return.git"
   },
   "author": "",
+  "engines": {
+    "node": "22.x"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/seifmedhat2004/Rent-and-Return/issues"
