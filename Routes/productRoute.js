@@ -23,8 +23,8 @@ route.post("/", protect, uploadSingleImage, postProduct);
 // Product creation with multiple images upload (alternative endpoint)
 route.post("/multiple-images", protect, uploadMultipleImages, postProduct);
 
-route.put("/:id", protect, authorize("admin"), UpdateProduct);
+route.put("/:id", protect, UpdateProduct);
 
-route.delete("/:id", protect, authorize("admin"), DeleteProduct);
+route.delete("/:id", protect, DeleteProduct);
 
 module.exports = route;
