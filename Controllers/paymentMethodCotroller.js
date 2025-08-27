@@ -4,38 +4,67 @@ const {
   fawryModel,
 } = require("../Models/paymentModel");
 const asynchandler = require("express-async-handler");
-const { decrypt } = require("../utils/crypto");
+const crypto = require("crypto");
+const { encrypt, decrypt } = require("../utils/crypto");
+
+function hashValue(value) {
+  return crypto.createHash("sha256").update(value).digest("hex");
+}
 
 // Add payment method by admin
 exports.addGateWay = asynchandler(async (req, res) => {
-  const { type, ...rest } = req.body;
-  let gateway;
-  if (type === "Paymob") {
-    gateway = await payMobModel.create(rest);
-  } else if (type === "Fawry") {
-    gateway = await fawryModel.create(rest);
+  const { type, name, ...rest } = req.body;
+  let config;
+  if (type === "paymob") {
+    const exists = await payMobModel.findOne({ apiKeyHash: hashValue(rest.apiKey) });
+    if (exists) {
+      return res
+        .status(400)
+        .json({ status: "failed", message: "This apiKey already exits" });
+    }
+    config = await payMobModel.create({
+      ...rest,
+      apiKey: encrypt(rest.apiKey),
+      apiKeyHash: hashValue(rest.apiKey),
+      hMacSecret: encrypt(rest.hMacSecret),
+    });
+  } else if (type === "fawry") {
+    const exists = await fawryModel.findOne({
+      secureKeyHash: hashValue(rest.secureKey),
+    });
+    if (exists) {
+      return res
+        .status(400)
+        .json({ status: "faild", message: "This secureKey already exists" });
+    }
+    config = await fawryModel.create({
+      ...rest,
+      secureKey: encrypt(rest.secureKey),
+      secureKeyHash: hashValue(rest.secureKey),
+    });
   } else {
     return res
       .status(400)
       .json({ status: "failed", message: "Unsupported provider type" });
   }
+  const gateway = await paymentModel.create({ name, type, config: config._id });
   res.status(200).json({ status: "success", gateway });
 });
 
 //get the payment methods that you have in the server(Admin)
 exports.getGatWay = asynchandler(async (req, res) => {
-  const gateways = await paymentModel.find();
+  const gateways = await paymentModel.find().populate("config");
 
   const decrypted = gateways.map((gw) => {
-    const creds = { ...gw._doc };
+    const creds = gw.config.toObject();
     if (gw.type === "paymob") {
-      creds.apiKey = decrypt(gw.apiKey);
-      creds.hmacSecret = decrypt(gw.hmacSecret);
+      creds.apiKey = decrypt(creds.apiKey);
+      creds.hMacSecret = decrypt(creds.hMacSecret);
     }
     if (gw.type === "fawry") {
       creds.securityKey = decrypt(gw.securityKey);
     }
-    return creds;
+    return { ...gw.toObject(), config: creds };
   });
 
   res.json({ status: "Success", gateways: decrypted });
@@ -70,7 +99,7 @@ exports.deleteGateWay = asynchandler(async (req, res) => {
     .json({ status: "Success", message: "Gateway deleted successfully" });
 });
 
-//get 
+//get
 //User can see the available gate ways
 exports.getAvailableGateWay = asynchandler(async (req, res) => {
   const availableGateWay = await paymentModel.find().select("type name");
@@ -84,20 +113,18 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
     res.status(404).json({ status: "Faild", message: "Gateway noot found" });
   }
 
-  //decoded the protected data 
+  //decoded the protected data
   const cred = gw.toObject();
-  if (gw.type.toLowerCase() === "Paymob") {
+  if (gw.type === "paymob") {
     cred.apiKey = decrypt(gw.apiKey);
     cred.hMacSecret = decrypt(gw.hMacSecret);
-  } else if (gw.type.toLowerCase() === "Fawry") {
+  } else if (gw.type === "fawry") {
     cred.secureKey = decrypt(gw.secureKey);
   }
 
-  res
-    .status(200)
-    .json({
-      status: "Success",
-      message: `you have selected ${gw.type} as your payment method`,
-      gateway: { id: gw._id, type: gw.type },
-    });
+  res.status(200).json({
+    status: "Success",
+    message: `you have selected ${gw.type} as your payment method`,
+    gateway: { id: gw._id, type: gw.type },
+  });
 });

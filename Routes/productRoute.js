@@ -6,14 +6,14 @@ const {
   DeleteProduct,
   postProduct,
 } = require("../Controllers/productControllers");
-const { protect, authorize } = require("../middlewares/authMiddleware");
+const { protect} = require("../middlewares/authMiddleware");
 
 const route = express.Router();
 // https://renturn.vercel.app/api/v1/products
 route.get("/", getAllProducts);
 route.get("/:id", getSingleProduct);
-route.post("/", protect, authorize("admin"), postProduct);
-route.put("/:id", protect, authorize("admin"), UpdateProduct);
-route.delete("/:id", protect, authorize("admin"), DeleteProduct);
+route.post("/", protect, postProduct);//Notic
+route.put("/:id", protect, UpdateProduct);//Notic
+route.delete("/:id",protect, DeleteProduct);//Notic
 
 module.exports = route;

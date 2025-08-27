@@ -11,7 +11,7 @@ const Product = require("../Models/productModel");
  */
 exports.getCart = asynchandler(async (req, res) => {
   const cart = await Cart.findOne({ user: req.user.id }).populate(
-    "item.productID"
+    "items.productID"
   );
   if (!cart) {
     return res
@@ -59,7 +59,7 @@ exports.addToCart = asynchandler(async (req, res) => {
     }
     await cart.save();
   }
-  await cart.populate("item.product");
+  await cart.populate("items.product");
   const totalPrice = cart.items.reduce((acc, item) => {
     return acc + item.product.price * item.quantity;
   }, 0);
@@ -84,7 +84,7 @@ exports.updateCartItem = asynchandler(async (req, res) => {
       .json({ status: "faild", message: "The product not found" });
   }
   const cart = await Cart.findOne({ user: req.user.id }).populate(
-    "item.product"
+    "items.product"
   );
 
   if (!cart) {
@@ -105,7 +105,7 @@ exports.updateCartItem = asynchandler(async (req, res) => {
 
   await cart.save();
 
-  await cart.populate("item.product");
+  await cart.populate("items.product");
 
   const totalPrice = cart.items.reduce((acc, item) => {
     return acc + item.product.price * item.quantity;
@@ -141,7 +141,7 @@ exports.removeFromCart = asynchandler(async (req, res) => {
   }
   cart.items.splice(itemIndex, 1);
   await cart.save();
-  await cart.populate("item.product");
+  await cart.populate("items.product");
   const totalPrice = cart.items.reduce((acc, item) => {
     return acc + item.product.price * item.quantity;
   }, 0);

@@ -9,13 +9,14 @@ const ProductModel = new mongoose.Schema({
     },
     product_description:{
         type:String,
-        required:false,
+        required:true,
         trim:true,
         maxlength:100,
     },
     quantity:{
         type:Number,
         min:0,
+        default:1
     },
     price:{
         type:Number,
