@@ -6,7 +6,7 @@ function validationPostProduct(obj) {
     product_description: joi.string().required().trim().min(3).max(200),
     quantity: joi.number().min(0).required(),
     price: joi.number().required().min(0),
-    categoryId: joi.object().required(),
+    categoryId: joi.string().required().hex().length(24),
   });
   return schema.validate(obj);
 }
