@@ -30,12 +30,11 @@ const ProductModel = new mongoose.Schema({
     type: String,
     required: true,
   },
-  images: [
-    {
-      type: String,
-      required: false,
-    },
-
+  images: {
+    type: String,
+    required: false,
+  },
+});
 
 const product = mongoose.model("Product", ProductModel);
 
