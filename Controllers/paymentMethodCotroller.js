@@ -62,7 +62,7 @@ exports.getGatWay = asynchandler(async (req, res) => {
       creds.hMacSecret = decrypt(creds.hMacSecret);
     }
     if (gw.type === "fawry") {
-      creds.securityKey = decrypt(gw.securityKey);
+      creds.securityKey = decrypt(gw.secureKey);
     }
     return { ...gw.toObject(), config: creds };
   });
@@ -112,16 +112,6 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
   if (!gw) {
     res.status(404).json({ status: "Faild", message: "Gateway noot found" });
   }
-
-  //decoded the protected data
-  const cred = gw.toObject();
-  if (gw.type === "paymob") {
-    cred.apiKey = decrypt(gw.apiKey);
-    cred.hMacSecret = decrypt(gw.hMacSecret);
-  } else if (gw.type === "fawry") {
-    cred.secureKey = decrypt(gw.secureKey);
-  }
-
   res.status(200).json({
     status: "Success",
     message: `you have selected ${gw.type} as your payment method`,
