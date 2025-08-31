@@ -14,8 +14,8 @@ const paymentModel = mongoose.model("PaymentMethod", paymentMethodSchema);
 const paymobSchema = new mongoose.Schema({
   apiKey: { type: String, required: true, trim: true ,unique:true},
   apiKeyHash: { type: String, unique: true },
-  integrationId: { type: String, required: true, trim: true },
-  iFrame: { type: String, required: true, trim: true },
+  integrationId: { type: Number, required: true, trim: true },
+  iFrame: { type: Number, required: true, trim: true },
   hMacSecret: { type: String, required: true, trim: true ,unique:true},
 });
 const payMobModel = mongoose.model("paymob", paymobSchema);
