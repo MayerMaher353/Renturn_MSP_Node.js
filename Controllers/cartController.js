@@ -16,10 +16,10 @@ exports.getCart = asynchandler(async (req, res) => {
   if (!cart) {
     return res
       .status(200)
-      .json({ status: "success ", data: { item: [], totalPrice: 0 } });
+      .json({ status: "success ", data: { items: [], totalPrice: 0 } });
   }
   const totalPrice = cart.items.reduce((acc, item) => {
-    return acc + item.product.price * item.quantity;
+    return acc + item.productID.price * item.quantity;
   }, 0);
   res.status(200).json({
     status: "success",
