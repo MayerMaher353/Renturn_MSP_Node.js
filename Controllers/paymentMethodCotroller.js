@@ -71,11 +71,31 @@ exports.getGatWay = asynchandler(async (req, res) => {
   const decrypted = gateways.map((gw) => {
     const creds = gw.config.toObject();
     if (gw.type === "paymob") {
-      creds.apiKey = decrypt(creds.apiKey);
-      creds.hMacSecret = decrypt(creds.hMacSecret);
+      let apiKeyEnc = creds.apiKey;
+      if (typeof apiKeyEnc === "string") {
+        try {
+          apiKeyEnc = JSON.parse(apiKeyEnc);
+        } catch (e) {}
+      }
+      let hmacEnc = creds.hMacSecret;
+      if (typeof hmacEnc === "string") {
+        try {
+          hmacEnc = JSON.parse(hmacEnc);
+        } catch (e) {}
+      }
+
+      creds.apiKey = decrypt(apiKeyEnc);
+      creds.hMacSecret = decrypt(hmacEnc);
     }
     if (gw.type === "fawry") {
-      creds.securityKey = decrypt(gw.secureKey);
+      let secKeyEnc = creds.securityKey;
+      if (typeof secKeyEnc === "string") {
+        try {
+          secKeyEnc = JSON.parse(secKeyEnc);
+        } catch (e) {}
+      }
+
+      creds.securityKey = decrypt(secKeyEnc);
     }
     return { ...gw.toObject(), config: creds };
   });
@@ -94,7 +114,9 @@ exports.updateGateWay = asynchandler(async (req, res) => {
   );
 
   if (!gateway) {
-    return res.status(404).json({ status: "Faild", message: "Gatway not found" });
+    return res
+      .status(404)
+      .json({ status: "Faild", message: "Gatway not found" });
   }
 
   res.status(200).json({ status: "Success", gateway });
@@ -105,7 +127,9 @@ exports.deleteGateWay = asynchandler(async (req, res) => {
   const { id } = req.params;
   const gateway = await paymentModel.findByIdAndDelete(id);
   if (!gateway) {
-    return res.status(404).json({ status: "Faild", message: "Gateway not found" });
+    return res
+      .status(404)
+      .json({ status: "Faild", message: "Gateway not found" });
   }
   res
     .status(200)
@@ -123,14 +147,21 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
   const { orderId, gateway } = req.body;
   const gw = await paymentModel.findById(gateway);
   if (!gw) {
-    return res.status(404).json({ status: "Faild", message: "Gateway not found" });
+    return res
+      .status(404)
+      .json({ status: "Faild", message: "Gateway not found" });
   }
   const order = await Order.findById(orderId);
   if (!order) {
-    return res.status(404).json({ status: "Faild", message: "Order not found" });
+    return res
+      .status(404)
+      .json({ status: "Faild", message: "Order not found" });
   }
-  if(order.user.toString()!== req.user.id){
-    return res.status(403).json({status:"faild",message:"not authorized to access this order"})
+  if (order.user.toString() !== req.user.id) {
+    return res.status(403).json({
+      status: "faild",
+      message: "not authorized to access this order",
+    });
   }
   res.status(200).json({
     status: "Success",
@@ -147,7 +178,7 @@ exports.createCheckout = asynchandler(async (req, res) => {
   );
   //check if the cart is impty or not
   if (!cart || cart.items.length === 0) {
-    return res.status(400).json({ status: "Faild", message: "Cart" });
+    return res.status(400).json({ status: "Faild", message: "Cart not found" });
   }
   //claculate  the subtotal(price of product * quantity) + dilivery fee +tax
   const subtotal = cart.items.reduce((acc, item) => {
@@ -164,6 +195,9 @@ exports.createCheckout = asynchandler(async (req, res) => {
       product: i.product._id,
       quantity: i.quantity,
     })),
+    subtotal,
+    diliveryFee,
+    tax,
     total,
     status: "pending",
     firstName: req.body.firstName,
@@ -185,49 +219,58 @@ exports.createCheckout = asynchandler(async (req, res) => {
       .status(400)
       .json({ status: "fail", message: "Paymob not configured" });
   }
+  let apiKeyEnc = gw.config.apiKey;
+  if (typeof apiKeyEnc === "string") {
+    try {
+      apiKeyEnc = JSON.parse(apiKeyEnc);
+    } catch (e) {}
+  }
 
-  const apiKey = decrypt(gw.config.apiKey);
-  const authToken = await getAuthToken(apiKey);
+  const authToken = await getAuthToken(apiKeyEnc);
   const itemsForPaymob = cart.items.map((i) => ({
-    name: i.product.name,
+    name: i.product.product_name,
     amount_cents: Math.round(i.product.price * 100),
     quantity: i.quantity,
   }));
-  const paymobOrderId = await registerOrder(
+  const paymobOrder = await registerOrder(
     authToken,
+    createOrder._id.toString(),
     amountCents,
-    createOrder._id,
     itemsForPaymob
   );
+  const paymobOrderId = paymobOrder.id;
+
   const billingData = {
-    first_name: createOrder.firstName,
-    last_name: createOrder.lastName,
-    email: createOrder.email,
-    phone_number: createOrder.phoneNumber,
-    city: createOrder.city || "",
+    apartment: "NA",
+    email: createOrder.email || "customer@test.com",
+    floor: "NA",
+    first_name: createOrder.firstName || "Test",
+    last_name: createOrder.lastName || "User",
+    phone_number: createOrder.phoneNumber || "+201234567890",
+    street: createOrder.streetAddress || "NA",
+    building: "NA",
+    shipping_method: "NA",
+    postal_code: "NA",
+    city: createOrder.city || "Cairo",
     country: "EG",
+    state: createOrder.state || "NA",
   };
   const paymentKey = await generatePaymentKey(
     authToken,
     paymobOrderId,
     amountCents,
     billingData,
-    gw.config.integrationId
+    Number(gw.config.integrationId)
   );
-  const iframeUrl = getIframeUrl(gw.config.iframeId, paymentKey);
+  const iframeUrl = getIframeUrl(gw.config.iFrame, paymentKey);
 
   await PaymentTransaction.create({
-    order: createOrder._id,
-    gateway: gw._id,
-    provider: "paymob",
+    orderId: createOrder._id, 
+    paymentMethod: "paymob", 
     amount: total,
-    amount_cents: amountCents,
-    paymob_order_id: paymobOrderId,
-    payment_key: paymentKey,
     status: "pending",
+    gateWayTransactionId: paymobOrderId,
   });
 
   res.status(200).json({ status: "Success", createOrder, iframeUrl });
 });
-
-
