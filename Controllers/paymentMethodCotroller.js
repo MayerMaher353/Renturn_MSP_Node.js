@@ -178,7 +178,7 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
     const authToken = await getAuthToken(apiKeyEnc);
 
     const itemsForPaymob = order.products.map((i) => ({
-      name: p.productId?.product_name || "Product",
+      name: i.productId?.product_name || "Product",
       amount_cents: Math.round(i.price * 100),
       quantity: i.qty,
     }));
