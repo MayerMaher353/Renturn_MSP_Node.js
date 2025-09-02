@@ -46,7 +46,7 @@ exports.addToCart = asynchandler(async (req, res) => {
       user: req.user.id,
       item: [{ Product: productID, quantity: quantity || 1 }],
     });
-  } else {
+  } 
     const itemIndex = cart.items.findIndex(
       (el) => el.product.toString() === productID
     );
@@ -56,12 +56,12 @@ exports.addToCart = asynchandler(async (req, res) => {
       cart.items[itemIndex].quantity += quantity;
     } else {
       cart.items.push({ product: productID, quantity: qty });
-    }
+    
     await cart.save();
   }
   await cart.populate("items.product");
-  const totalPrice = cart.items.reduce((acc, item) => {
-    return acc + item.product.price * item.quantity;
+  const totalPrice = cart.items.reduce((acc, items) => {
+    return acc + items.product.price * items.quantity;
   }, 0);
 
   res.status(200).json({

@@ -142,15 +142,18 @@ exports.getAvailableGateWay = asynchandler(async (req, res) => {
   const availableGateWay = await paymentModel.find().select("type name");
   res.status(200).json({ status: "Success", availableGateWay });
 });
+
 //get method that allow user choose the way of payment fawry or paymob
 exports.chooseGateWay = asynchandler(async (req, res) => {
   const { orderId, gateway } = req.body;
-  const gw = await paymentModel.findById(gateway);
+
+  const gw = await paymentModel.findById(gateway).populate("config");
   if (!gw) {
     return res
       .status(404)
       .json({ status: "Faild", message: "Gateway not found" });
   }
+
   const order = await Order.findById(orderId);
   if (!order) {
     return res
@@ -163,6 +166,74 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
       message: "not authorized to access this order",
     });
   }
+
+  if (gw.type === "paymob") {
+    let apiKeyEnc = gw.config.apiKey;
+    if (typeof apiKeyEnc === "string") {
+      try {
+        apiKeyEnc = JSON.parse(apiKeyEnc);
+      } catch (e) {}
+    }
+
+    const authToken = await getAuthToken(apiKeyEnc);
+
+    const itemsForPaymob = order.products.map((i) => ({
+      name: p.productId?.product_name || "Product",
+      amount_cents: Math.round(i.price * 100),
+      quantity: i.qty,
+    }));
+
+    const paymobOrder = await registerOrder(
+      authToken,
+      order._id.toString(),
+      Math.round(order.total * 100), // total بالـ cents
+      itemsForPaymob
+    );
+
+    const paymobOrderId = paymobOrder.id;
+
+    const billingData = {
+      apartment: "NA",
+      email: order.email || "customer@test.com",
+      floor: "NA",
+      first_name: order.firstName || "Test",
+      last_name: order.lastName || "User",
+      phone_number: order.phoneNumber || "+201234567890",
+      street: order.streetAddress || "NA",
+      building: "NA",
+      shipping_method: "NA",
+      postal_code: "NA",
+      city: order.city || "Cairo",
+      country: "EG",
+      state: order.state || "NA",
+    };
+
+    const paymentKey = await generatePaymentKey(
+      authToken,
+      paymobOrderId,
+      Math.round(order.total * 100),
+      billingData,
+      Number(gw.config.integrationId)
+    );
+
+    const iframeUrl = getIframeUrl(gw.config.iFrame, paymentKey);
+
+    await PaymentTransaction.create({
+      orderId: order._id,
+      paymentMethod: "paymob",
+      amount: order.total,
+      status: "pending",
+      gateWayTransactionId: paymobOrderId,
+    });
+
+    return res.status(200).json({
+      status: "Success",
+      message: "Paymob checkout link generated successfully",
+      iframeUrl,
+    });
+  }
+
+  // fallback for غير paymob
   res.status(200).json({
     status: "Success",
     message: `you have selected ${gw.type} as your payment method`,
@@ -172,28 +243,29 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
 
 //Create checkout form to make an order
 exports.createCheckout = asynchandler(async (req, res) => {
-  //get the items in cart to make order
   const cart = await Cart.findOne({ user: req.user.id }).populate(
     "items.product"
   );
-  //check if the cart is impty or not
+
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ status: "Faild", message: "Cart not found" });
   }
-  //claculate  the subtotal(price of product * quantity) + dilivery fee +tax
-  const subtotal = cart.items.reduce((acc, item) => {
-    return acc + item.product.price * item.quantity;
-  }, 0);
+
+  const subtotal = cart.items.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
   const diliveryFee = 25;
-  const tax = 0.12 * subtotal; //12%
+  const tax = 0.12 * subtotal;
   const total = subtotal + diliveryFee + tax;
-  const amountCents = Math.round(total * 100);
-  // create order schema
+
   const createOrder = await Order.create({
     user: req.user.id,
     items: cart.items.map((i) => ({
       product: i.product._id,
       quantity: i.quantity,
+      price: i.product.price,
+      productName: i.product.product_name,
     })),
     subtotal,
     diliveryFee,
@@ -210,67 +282,7 @@ exports.createCheckout = asynchandler(async (req, res) => {
     specialInstructions: req.body.specialInstructions,
   });
 
-  //delete the items from carts after order
   await Cart.findOneAndDelete({ user: req.user.id });
 
-  const gw = await paymentModel.findOne({ type: "paymob" }).populate("config");
-  if (!gw) {
-    return res
-      .status(400)
-      .json({ status: "fail", message: "Paymob not configured" });
-  }
-  let apiKeyEnc = gw.config.apiKey;
-  if (typeof apiKeyEnc === "string") {
-    try {
-      apiKeyEnc = JSON.parse(apiKeyEnc);
-    } catch (e) {}
-  }
-
-  const authToken = await getAuthToken(apiKeyEnc);
-  const itemsForPaymob = cart.items.map((i) => ({
-    name: i.product.product_name,
-    amount_cents: Math.round(i.product.price * 100),
-    quantity: i.quantity,
-  }));
-  const paymobOrder = await registerOrder(
-    authToken,
-    createOrder._id.toString(),
-    amountCents,
-    itemsForPaymob
-  );
-  const paymobOrderId = paymobOrder.id;
-
-  const billingData = {
-    apartment: "NA",
-    email: createOrder.email || "customer@test.com",
-    floor: "NA",
-    first_name: createOrder.firstName || "Test",
-    last_name: createOrder.lastName || "User",
-    phone_number: createOrder.phoneNumber || "+201234567890",
-    street: createOrder.streetAddress || "NA",
-    building: "NA",
-    shipping_method: "NA",
-    postal_code: "NA",
-    city: createOrder.city || "Cairo",
-    country: "EG",
-    state: createOrder.state || "NA",
-  };
-  const paymentKey = await generatePaymentKey(
-    authToken,
-    paymobOrderId,
-    amountCents,
-    billingData,
-    Number(gw.config.integrationId)
-  );
-  const iframeUrl = getIframeUrl(gw.config.iFrame, paymentKey);
-
-  await PaymentTransaction.create({
-    orderId: createOrder._id, 
-    paymentMethod: "paymob", 
-    amount: total,
-    status: "pending",
-    gateWayTransactionId: paymobOrderId,
-  });
-
-  res.status(200).json({ status: "Success", createOrder, iframeUrl });
+  res.status(200).json({ status: "Success", order: createOrder });
 });
