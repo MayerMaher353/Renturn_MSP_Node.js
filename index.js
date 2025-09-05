@@ -9,8 +9,9 @@ const adminPaymentRoute = require("./Routes/adminPaymentRoutes");
 const userPaymentRoute = require("./Routes/userPaymentRoute")
 const carts= require("./Routes/cartRoute")
 const errorHandler = require("./middlewares/errorMiddleware");
-
+const cors = require("cors")
 const app = express();
+app.use(cors())
 
 // middleware body
 app.use(express.json());

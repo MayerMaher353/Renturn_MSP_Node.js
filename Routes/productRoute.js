@@ -16,16 +16,20 @@ const {
 const route = express.Router();
 // https://renturn.vercel.app/api/v1/products
 route.get("/", getAllProducts);
-route.get("/:id", getSingleProduct);
+route.get("/:id", getSingleProduct);// https://renturn.vercel.app/api/v1/products/:id
 
 // Product creation with single image upload
-route.post("/", protect, uploadSingleImage, postProduct);
+route.post("/", protect, uploadSingleImage, postProduct);// https://renturn.vercel.app/api/v1/products
+
 
 // Product creation with multiple images upload (alternative endpoint)
-route.post("/multiple-images", protect, uploadMultipleImages, postProduct);
+route.post("/multiple-images", protect, uploadMultipleImages, postProduct);// https://renturn.vercel.app/api/v1/products/multiple-images
 
-route.put("/:id", protect, UpdateProduct);
 
-route.delete("/:id", protect, DeleteProduct);
+route.put("/:id", protect, UpdateProduct);// https://renturn.vercel.app/api/v1/products/:id
+
+
+route.delete("/:id", protect, DeleteProduct);// https://renturn.vercel.app/api/v1/products/:id
+
 
 module.exports = route;

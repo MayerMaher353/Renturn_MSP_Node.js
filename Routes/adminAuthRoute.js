@@ -12,8 +12,8 @@ router.use(protect);
 router.use(authorize("admin"));
 
 // Admin only routes
-router.get("/users", getAllUsers);
-router.get("/users/:id", getUserById);
-router.delete("/users/:id", deleteUser);
+router.get("/users", getAllUsers); //https://renturn.vercel.app/api/v1/admin/users
+router.get("/users/:id", getUserById);  //https://renturn.vercel.app/api/v1/admin/users/:id
+router.delete("/users/:id", deleteUser);//https://renturn.vercel.app/api/v1/admin/users/:id
 
 module.exports = router;
