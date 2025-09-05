@@ -8,10 +8,10 @@ route.use(protect);
 route.use(authorize("admin"));    
 
 //Admin Routes
-route.post("/addGate",addGateWay)
-route.get("/gatways",getGatWay)
-route.put("/updateGatWay/:id",updateGateWay)
-route.delete("/deleteGateWay/:id",deleteGateWay)
+route.post("/addGate",addGateWay) //https://renturn.vercel.app/api/v1/adminPayment/addGate
+route.get("/gatways",getGatWay) //https://renturn.vercel.app/api/v1/adminPayment/gatways
+route.put("/updateGatWay/:id",updateGateWay) //https://renturn.vercel.app/api/v1/adminPayment/updateGatWay/:id
+route.delete("/deleteGateWay/:id",deleteGateWay) //https://renturn.vercel.app/api/v1/adminPayment/deleteGateWay/:id
 
 module.exports=route;
 
