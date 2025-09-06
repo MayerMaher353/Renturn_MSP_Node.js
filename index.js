@@ -11,7 +11,8 @@ const carts= require("./Routes/cartRoute")
 const errorHandler = require("./middlewares/errorMiddleware");
 const cors = require("cors")
 const app = express();
-app.use(cors())
+whileList = ["http://localhost:5500"]
+app.use(cors({origin:whileList,credentials:true}))
 
 // middleware body
 app.use(express.json());
