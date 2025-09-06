@@ -6,13 +6,13 @@ const productRoute = require("./Routes/productRoute");
 const userAuthRoute = require("./Routes/userAuthRoute");
 const adminAuthRoute = require("./Routes/adminAuthRoute");
 const adminPaymentRoute = require("./Routes/adminPaymentRoutes");
-const userPaymentRoute = require("./Routes/userPaymentRoute")
-const carts= require("./Routes/cartRoute")
+const userPaymentRoute = require("./Routes/userPaymentRoute");
+const carts = require("./Routes/cartRoute");
 const errorHandler = require("./middlewares/errorMiddleware");
-const cors = require("cors")
+const cors = require("cors");
 const app = express();
-whileList = ["http://localhost:5500"]
-app.use(cors({origin:whileList,credentials:true}))
+whileList = ["http://localhost:5500", "https://renturn-nine.vercel.app/"];
+app.use(cors({ origin: whileList, credentials: true }));
 
 // middleware body
 app.use(express.json());
@@ -38,7 +38,7 @@ app.use("/api/v1/admin", adminAuthRoute);
 app.use("/api/v1/products", productRoute);
 app.use("/api/v1/carts", carts);
 app.use("/api/v1/adminPayment", adminPaymentRoute);
-app.use("/api/v1/userPayment",userPaymentRoute)
+app.use("/api/v1/userPayment", userPaymentRoute);
 
 // Error handler middleware
 app.use(errorHandler);
