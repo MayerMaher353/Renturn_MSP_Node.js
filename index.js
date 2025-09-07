@@ -11,7 +11,7 @@ const carts = require("./Routes/cartRoute");
 const errorHandler = require("./middlewares/errorMiddleware");
 const cors = require("cors");
 const app = express();
-whileList = ["http://localhost:5500", "https://renturn-nine.vercel.app/"];
+whileList = ["http://localhost:5500", "https://renturn-nine.vercel.app","http://127.0.0.1:5500"];
 app.use(cors({ origin: whileList, credentials: true }));
 
 // middleware body
