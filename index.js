@@ -11,8 +11,24 @@ const carts = require("./Routes/cartRoute");
 const errorHandler = require("./middlewares/errorMiddleware");
 const cors = require("cors");
 const app = express();
-whileList = ["http://localhost:5500", "https://renturn-nine.vercel.app","http://127.0.0.1:5500"];
-app.use(cors({ origin: whileList, credentials: true }));
+const whitelist = [
+  "http://127.0.0.1:5500/",
+  "http://localhost:5500/",
+  "https://renturn-nine.vercel.app/",
+  "http://127.0.0.1:5500/"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
+
 
 // middleware body
 app.use(express.json());
