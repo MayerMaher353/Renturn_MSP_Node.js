@@ -254,7 +254,7 @@ exports.createCheckout = asynchandler(async (req, res) => {
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const diliveryFee = 25;
+  const diliveryFee = 100;
   const tax = 0.12 * subtotal;
   const total = subtotal + diliveryFee + tax;
 
@@ -343,3 +343,11 @@ const orderID = data.order.merchant_order_id;
 });
 
 
+  exports.paymentStatus = asynchandler(async(req, res)=>{
+    const {success , order }= req.query;
+    if (success === "true"){
+      return res.redirect("")//still need endpoint of front end 
+    }else{
+      return res.redirect("")//still need endpoint of front end
+    }
+  })

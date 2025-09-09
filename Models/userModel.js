@@ -33,10 +33,11 @@ const userSchema = new mongoose.Schema({
   },
   nationalID: {
     type: String,
-    minlength: 14,
-    maxlength: 60, 
+    // maxlength: 14, 
+    // minlength:13,
     required: true,
     select: false,
+    length:14,
   },
   resetCode: {
     type: String,
