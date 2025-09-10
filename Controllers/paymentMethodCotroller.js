@@ -15,6 +15,7 @@ const PaymentTransaction = require("../Models/paymentTransactionModel");
 const asynchandler = require("express-async-handler");
 const crypto = require("crypto");
 const { encrypt, decrypt } = require("../utils/crypto");
+const orderModel = require("../Models/orderModel");
 
 function hashValue(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -295,7 +296,7 @@ exports.handlePaymobwebhook = asynchandler(async (req, res) => {
     .update(JSON.stringify(data))
     .digest("hex");
 
-  const hmacHeader = req.headers["hmac"]||req.headers["HMAC"]
+  const hmacHeader = req.headers["hmac"] || req.headers["HMAC"];
   if (calculateHmacSecret !== hmacHeader) {
     return res.status(401).json({ status: "Faild", message: "invalid HMAC" });
   }
@@ -321,7 +322,7 @@ exports.handlePaymobwebhook = asynchandler(async (req, res) => {
     });
   }
   if (data.is_refunded === true) {
-const orderID = data.order.merchant_order_id;
+    const orderID = data.order.merchant_order_id;
     const order = await Order.findById(orderID);
     if (!order) {
       return res
@@ -342,12 +343,26 @@ const orderID = data.order.merchant_order_id;
   res.status(200).json({ status: "success" });
 });
 
-
-  exports.paymentStatus = asynchandler(async(req, res)=>{
-    const {success , order }= req.query;
-    if (success === "true"){
-      return res.status(200).json({status:"success",message:"Order confirmed",order})
-    }else{
-      return res.status(400).json({status:"failed",message:"Something wrong please try again"})
-    }
-  })
+exports.paymentStatus = asynchandler(async (req, res) => {
+  const { success, order } = req.query;
+  if (order) {
+    return res
+      .status(400)
+      .json({ status: "failed", message: "order ID is required" });
+  }
+  const existOrder = await orderModel.findById(order);
+  if (!existOrder) {
+    return res
+      .status(404)
+      .json({ status: "failed", message: "Order not found" });
+  }
+  if (success === "true") {
+    return res
+      .status(200)
+      .json({ status: "success", message: "Order confirmed", existOrder });
+  } else {
+    return res
+      .status(400)
+      .json({ status: "failed", message: "Something wrong please try again" });
+  }
+});
