@@ -346,8 +346,8 @@ const orderID = data.order.merchant_order_id;
   exports.paymentStatus = asynchandler(async(req, res)=>{
     const {success , order }= req.query;
     if (success === "true"){
-      return res.redirect("")//still need endpoint of front end 
+      return res.status(200).json({status:"success",message:"Order confirmed",order})
     }else{
-      return res.redirect("")//still need endpoint of front end
+      return res.status(400).json({status:"failed",message:"Something wrong please try again"})
     }
   })
