@@ -36,8 +36,13 @@ const userSchema = new mongoose.Schema({
     // maxlength: 14, 
     // minlength:13,
     required: true,
-    select: false,
+    // select: false,
     length:14,
+  },
+  phoneNumber:{
+    type:Number,
+    require:true,
+    length:11
   },
   resetCode: {
     type: String,
