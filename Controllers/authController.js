@@ -265,7 +265,7 @@ const changePassword = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/admin/users
 // @access  Private/Admin
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("-password");
+  const users = await User.find().select("firstname lastname email nationalID phoneNumber");
   res.json({
     count: users.length,
     data: users,
