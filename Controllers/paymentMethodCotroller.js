@@ -186,7 +186,7 @@ exports.chooseGateWay = asynchandler(async (req, res) => {
     const paymobOrder = await registerOrder(
       authToken,
       order._id.toString(),
-      Math.round(order.total * 100), 
+      Math.round(order.total * 100),
       itemsForPaymob
     );
 
@@ -254,7 +254,7 @@ exports.createCheckout = asynchandler(async (req, res) => {
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const diliveryFee = 25;
+  const diliveryFee = 100;
   const tax = 0.12 * subtotal;
   const total = subtotal + diliveryFee + tax;
 
@@ -285,3 +285,69 @@ exports.createCheckout = asynchandler(async (req, res) => {
 
   res.status(200).json({ status: "Success", order: createOrder });
 });
+
+exports.handlePaymobwebhook = asynchandler(async (req, res) => {
+  const data = req.body;
+  const gw = await paymentModel.findOne({ type: "paymob" }).populate("config");
+  const hMacSecret = gw.config.hMacSecret;
+  const calculateHmacSecret = crypto
+    .createHmac("sha512", decrypt(hMacSecret))
+    .update(JSON.stringify(data))
+    .digest("hex");
+
+  const hmacHeader = req.headers["hmac"]||req.headers["HMAC"]
+  if (calculateHmacSecret !== hmacHeader) {
+    return res.status(401).json({ status: "Faild", message: "invalid HMAC" });
+  }
+
+  if (data.success) {
+    const orderID = data.order.merchant_order_id;
+    const order = await Order.findById(orderID);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Order not found" });
+    }
+
+    order.status = "paid";
+    order.fundsStatus = "held";
+    await order.save();
+    await PaymentTransaction.create({
+      orderId: order._id,
+      paymentMethod: "paymob",
+      amount: data.amount_cents / 100,
+      status: "paid",
+      gateWayTransactionId: data.id,
+    });
+  }
+  if (data.is_refunded === true) {
+const orderID = data.order.merchant_order_id;
+    const order = await Order.findById(orderID);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Order not found" });
+    }
+    order.status = "Refunding";
+    await order.save();
+
+    await PaymentTransaction.create({
+      orderId: order._id,
+      paymentMethod: "paymob",
+      amount: data.amount_cents / 100,
+      status: "Refunding",
+      gateWayTransactionId: data.id,
+    });
+  }
+  res.status(200).json({ status: "success" });
+});
+
+
+  exports.paymentStatus = asynchandler(async(req, res)=>{
+    const {success , order }= req.query;
+    if (success === "true"){
+      return res.status(200).json({status:"success",message:"Order confirmed",order})
+    }else{
+      return res.status(400).json({status:"failed",message:"Something wrong please try again"})
+    }
+  })

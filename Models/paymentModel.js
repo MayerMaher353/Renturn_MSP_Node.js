@@ -19,7 +19,7 @@ const paymobSchema = new mongoose.Schema({
   hMacSecret: { type: String, required: true, trim: true ,unique:true},
 });
 const payMobModel = mongoose.model("paymob", paymobSchema);
-
+// This is just expectig Model
 const fawrySchema = new mongoose.Schema({
   merchantCode: {
     type: String,
