@@ -1,3 +1,4 @@
+const { date } = require("joi");
 const mongoose = require("mongoose");
 
 const ProductModel = new mongoose.Schema({
@@ -34,6 +35,14 @@ const ProductModel = new mongoose.Schema({
     type: String,
     required: false,
   },
+  start:{
+    type:Date,
+    required:true
+  },
+  end:{
+    type:Date,
+    required:true
+  }
 });
 
 const product = mongoose.model("Product", ProductModel);
