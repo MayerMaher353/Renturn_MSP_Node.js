@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { encrypt, decrypt } = require("../utils/crypto");
 const crypto = require("crypto");
 const { sendPasswordResetEmail } = require("../services/emailService");
 
@@ -29,6 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
     confirmPassword,
     nationalID,
     adminSecret,
+    phoneNumber
   } = req.body;
 
   // Check if user exists by email
@@ -55,8 +57,8 @@ const registerUser = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, salt);
 
   // Hash national ID
-  const hashedNationalID = await bcrypt.hash(nationalID, salt);
-
+  // const hashedNationalID = await bcrypt.hash(nationalID, salt);
+  const encryptedNationalID = encrypt(nationalID);
   // Determine user role based on admin secret
   let userRole = "user"; // Default role
 
@@ -82,7 +84,8 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password: hashedPassword,
     confirmPassword: hashedPassword,
-    nationalID: hashedNationalID,
+    nationalID: encryptedNationalID,
+    phoneNumber,
     role: userRole,
   });
 
@@ -127,8 +130,8 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   // Check password
-  const isPasswordMatch = await bcrypt.compare(password, user.password);
-  if (!isPasswordMatch) {
+  const decryptedNationalID = decrypt(user.nationalID);
+  if (decryptedNationalID !== nationalID) {
     res.status(401);
     throw new Error("Invalid credentials");
   }
@@ -190,9 +193,8 @@ const updateProfile = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("National ID must be exactly 14 digits");
     }
-
-    const salt = await bcrypt.genSalt(10);
-    user.nationalID = await bcrypt.hash(req.body.nationalID, salt);
+    // Encrypt instead of hash
+    user.nationalID = encrypt(req.body.nationalID);
   }
 
   const updatedUser = await user.save();
@@ -265,10 +267,12 @@ const changePassword = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/admin/users
 // @access  Private/Admin
 const getAllUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().select("firstname lastname email nationalID phoneNumber");
+  const users = await User.find().select(
+    "firstname lastname email  phoneNumber"
+  );
   res.json({
-    count: users.length,
-    data: users,
+    count:users.length,
+    data:users,
   });
 });
 
