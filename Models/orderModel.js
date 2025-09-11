@@ -37,15 +37,27 @@ const orderSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["pending", "paid", "shipped", "completed", "cancelled","Refunding","paid_pending_delivery"],
+    enum: [
+      "pending",
+      "paid",
+      "shipped",
+      "completed",
+      "cancelled",
+      "Refunding",
+      "paid_pending_delivery",
+    ],
     default: "pending",
   },
   fundsStatus: {
-  type: String,
-  enum: ["none", "held", "released", "refunded"],
-  default: "none",
-},
-
+    type: String,
+    enum: ["none", "held", "released", "refunded"],
+    default: "none",
+  },
+  owner:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"user",
+    required:true
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

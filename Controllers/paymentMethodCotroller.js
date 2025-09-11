@@ -263,6 +263,7 @@ exports.createCheckout = asynchandler(async (req, res) => {
     user: req.user.id,
     items: cart.items.map((i) => ({
       product: i.product._id,
+      owener:i.product.owner,
       quantity: i.quantity,
       price: i.product.price,
       productName: i.product.product_name,
@@ -345,7 +346,7 @@ exports.handlePaymobwebhook = asynchandler(async (req, res) => {
 
 exports.paymentStatus = asynchandler(async (req, res) => {
   const { success, order } = req.query;
-  if (order) {
+  if (!order) {
     return res
       .status(400)
       .json({ status: "failed", message: "order ID is required" });
@@ -366,3 +367,4 @@ exports.paymentStatus = asynchandler(async (req, res) => {
       .json({ status: "failed", message: "Something wrong please try again" });
   }
 });
+
